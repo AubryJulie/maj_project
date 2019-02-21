@@ -1,0 +1,300 @@
+﻿;**************************************;
+;                                      ;
+;              DELAY                   ;
+;   pseudo code to compute the delay   ;
+;                                      ;
+;**************************************;
+
+;timer at 1Mhz(1µs)
+static volatile int time1a[2];
+static volatile int time2a[2];
+static volatile int time3a[2];
+static volatile int time1b[2];
+static volatile int time2b[2];
+static volatile int time3b[2];
+
+static int controller_uses_b = 0;
+static int 1before2 = 0;
+static int 2before3 = 0;
+static int 3before1 = 0;
+static int enable1a = 0;
+static int enable2a = 0;
+static int enable3a = 0;
+static int enable1b = 0;
+static int enable2b = 0;
+static int enable3b = 0;
+
+interrupt void Capture1(void)
+{
+	if (controller_uses_b)
+	{
+		time1a[0] = CCPR2L;
+		time1a[1] = CCPR2H;
+		enable1a = 1
+	}
+	else
+	{
+		time1b[0] = CCPR2L;
+		time1b[1] = CCPR2H;
+		enable1b = 1
+	}
+}
+
+interrupt void Capture2(void)
+{
+	if (controller_uses_b)
+	{
+		time2a[0] = CCPR3L;
+		time2a[1] = CCPR3H;
+		enable2a = 1
+	}
+	else
+	{
+		time2b[0] = CCPR3L;
+		time2b[1] = CCPR3H;
+		enable2b = 1
+	}
+}
+
+interrupt void Capture3(void)
+{
+	if (controller_uses_b)
+	{
+		time3a[0] = CCPR4L;
+		time3a[1] = CCPR4H;
+		enable2a = 1
+	}
+	else
+	{
+		time3b[0] = CCPR4L;
+		time3b[1] = CCPR4H;
+		enable2b = 1
+	}
+}
+
+void controller(void)
+{
+	for (;; controller_uses_b = !controller_uses_b)
+	{
+		if (!controller_uses_b)
+		{
+			#compute the delay
+			
+			!!!delay12!!!
+			if(enable1a && enable2a)
+			{
+				;if timex > timey skip
+				if (time1a[1] > time2a[1])
+				{	
+					#if mic2 capture before mic1
+					if (time1a[1]-time2a[1] <= 589µs 0x024D=>0x03)
+					{
+						delay12[1] = time1a[1]-time2a[1]
+						if (time1a[0] < time2a[0])
+						{
+							delay12[1] = delay12[1]-1
+							delay12[0] = FF-time2a[0]
+							delay12[0] = delay12[0] + 1 + time1a[0]
+							1before2 = 0
+						}
+						else
+						{
+							delay12[0] = time1a[0]-time2a[0]
+							1before2 = 0;
+						}
+					}
+					# 1 overflow occur => mic1 capture before mic2
+					else
+					{
+						delay12[1] = FF-time1a[1]
+						delay12[1] = delay12[1] + 1 + time2a[1]
+						if (time2a[0] < time1a[0])
+						{
+							delay12[1] = delay12[1]-1
+							delay12[0] = FF-time1a[0]
+							delay12[0] = delay12[0] + 1 + time2a[0]
+							1before2 = 1
+						}
+						else
+						{
+							delay12[0] = time2a[0]-time1a[0]
+							1before2 = 1
+						}
+					}
+				}
+				else
+				{	#if mic1 capture before mic2
+					if (time1a[1] < time2a[1])
+					{
+!!!!!!!!ICI!!!!!!
+						if (time2a[1]-time1a[1] <= 589µs)
+						{
+							delay12[1] = time2a[1]-time1a[1]
+							if (time2a[0] >= time1a[0])
+							{
+								delay12[0] = time2a[0]-time1a[0]
+								1before2 = 1
+							}
+							else
+							{
+								delay12[1] = delay12[1]-1
+								delay12[0] = FF-time1a[0]
+								delay12[0] = delay12[0] + 1 + time2a[0]
+								1before2 = 1
+							}
+						}
+						# 1 overflow occur => mic2 capture before mic1
+						else
+						{
+							delay12[1] = FFFF-time2a[1]
+							delay12[1] = delay12[1] + 1 + time1a[1]
+							if (time1a[0] >= time2a[0])
+							{
+								delay12[0] = time1a[0]-time2a[0]
+								1before2 = 0
+							}
+							else
+							{
+								delay12[1] = delay12[1]-1
+								delay12[0] = FFFF-time2a[0]
+								delay12[0] = delay12[0] + 1 + time1a[0]
+								1before2 = 0
+							}
+						}
+					}
+					else
+					{   !!!!j'ai supposé qu'on ne devait pas vérifier l'overflow => <589µs
+						delay12[1] = 0
+						# mic1 capture before mic2
+						if (time2a[0] >= time1a[0])
+						{
+							delay12[0] = time2a[0]-time1a[0]
+							1before2 = 1
+						}
+						# mic2 capture before mic1
+						else
+						{
+							delay12[0] = time1a[0]-time2a[0]
+							1before2 = 0
+						}
+					}
+				}
+			}
+			!!!delay23!!!
+			!!!delay31!!!
+			!!! use delay to compute angle and distance
+			enable1a = 0
+			enable2a = 0
+			enable3a = 0
+		}
+		
+		
+		else
+		{
+			#compute the delay
+			
+			!!!delay12!!!
+			#if mic2 capture before mic1
+			if (time1b[1] > time2b[1])
+			{	
+				if (time1b[1]-time2b[1] <= 589µs)
+				{
+					delay12[1] = time1b[1]-time2b[1]
+					if (time1b[0] >= time2b[0])
+					{
+						delay12[0] = time1b[0]-time2b[0]
+						1before2 = 0
+					}
+					else
+					{
+						delay12[1] = delay12[1]-1
+						delay12[0] = FFFF-time2b[0]
+						delay12[0] = delay12[0] + 1 + time1b[0]
+						1before2 = 0
+					}
+				}
+				# 1 overflow occur => mic1 capture before mic2
+				else
+				{
+					delay12[1] = FFFF-time1b[1]
+					delay12[1] = delay12[1] + 1 + time2b[1]
+					if (time2b[0] >= time1b[0])
+					{
+						delay12[0] = time2b[0]-time1b[0]
+						1before2 = 1
+					}
+					else
+					{
+						delay12[1] = delay12[1]-1
+						delay12[0] = FFFF-time1b[0]
+						delay12[0] = delay12[0] + 1 + time2b[0]
+						1before2 = 1
+					}
+				}
+			}
+			else
+			{	#if mic1 capture before mic2
+				if (time1b[1] < time2b[1])
+				{
+					if (time2b[1]-time1b[1] <= 589µs)
+					{
+						delay12[1] = time2b[1]-time1b[1]
+						if (time2b[0] >= time1b[0])
+						{
+							delay12[0] = time2b[0]-time1b[0]
+							1before2 = 1
+						}
+						else
+						{
+							delay12[1] = delay12[1]-1
+							delay12[0] = FFFF-time1b[0]
+							delay12[0] = delay12[0] + 1 + time2b[0]
+							1before2 = 1
+						}
+					}
+					# 1 overflow occur => mic2 capture before mic1
+					else
+					{
+						delay12[1] = FFFF-time2b[1]
+						delay12[1] = delay12[1] + 1 + time1b[1]
+						if (time1b[0] >= time2b[0])
+						{
+							delay12[0] = time1b[0]-time2b[0]
+							1before2 = 0
+						}
+						else
+						{
+							delay12[1] = delay12[1]-1
+							delay12[0] = FFFF-time2b[0]
+							delay12[0] = delay12[0] + 1 + time1b[0]
+							1before2 = 0
+						}
+					}
+				}
+				else
+				{
+					delay12[1] = 0
+					# mic1 capture before mic2
+					if (time2b[0] >= time1b[0])
+					{
+						delay12[0] = time2b[0]-time1b[0]
+						1before2 = 1
+					}
+					# mic2 capture before mic1
+					else
+					{
+						delay12[0] = time1b[0]-time2b[0]
+						1before2 = 0
+					}
+				}
+			}
+			!!!delay23!!!
+			!!!delay31!!!
+			!!! use delay to compute angle and distance
+			enable1b = 0
+			enable2b = 0
+			enable3b = 0
+		}
+	}
+}
+
