@@ -1,11 +1,11 @@
-﻿;**************************************;
+;**************************************;
 ;                                      ;
 ;              DELAY                   ;
 ;   pseudo code to compute the delay   ;
 ;                                      ;
 ;**************************************;
 
-timer at 0.5 Mhz(2µs)
+timer at 0.1 Mhz(10µs) #en utilisant un pas de 10µ on a 59 valeurs possible d'angle
 static volatile int time1a[2];
 static volatile int time2a[2];
 static volatile int time3a[2];
