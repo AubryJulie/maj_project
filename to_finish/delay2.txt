@@ -1,124 +1,94 @@
-;**************************************;
+﻿;**************************************;
 ;                                      ;
 ;              DELAY                   ;
 ;   pseudo code to compute the delay   ;
 ;                                      ;
 ;**************************************;
 
-timer at 0.1 Mhz(10µs) #en utilisant un pas de 10µ on a 59 valeurs possible d'angle
-static volatile int time1a[2];
-static volatile int time2a[2];
-static volatile int time3a[2];
-static volatile int time1b[2];
-static volatile int time2b[2];
-static volatile int time3b[2];
+timer at 250khz(4µs) #en utilisant un pas de 4µ on a 148 valeurs possible d'angle 0x94
+!!! problème non résolu: 
+!!! - on est entrain de calculer les délais dans la configuration a 
+!!! et on a reçu des données pour la configuration b. 1 des micro reçoit un capture et 
+!!! les autres ne l'ont pas reçu et on passe de la configuration a à la configuration b
+!!! 2 micros auront des valeurs précédentes et 1 aura une valeur récente.
+!!! Solution: retenir également la valeur précédente afin que lors d'une détection 
+!!! suplémentaire à un seul des micro on se rende compte que le temps est trop long.
+!!! Mais timer overflow ~= 0.65s => des mesures très éloignée pourront être concidérée comme proche
+!!! - à l'initialisation -> live lock, on est en configuration a
+!!! Solution attendre initialement que les 3 micros soient enable avant d'utiliser config a et config b
+static volatile int time1[2];
+static volatile int time2[2];
+static volatile int time3[2];
 
-static int controller_uses_b = 0;
 static int 1before2 = 0;
 static int 2before3 = 0;
 static int 3before1 = 0;
-static int enable1a = 0;
-static int enable2a = 0;
-static int enable3a = 0;
-static int enable1b = 0;
-static int enable2b = 0;
-static int enable3b = 0;
+static int enable1 = 0;
+static int enable2 = 0;
+static int enable3 = 0;
+
+interrupt void overflow4(void)
+{
+	if(!(enable1 && enable2 && enable3))
+	{
+		enable1 = 0
+		enable2 = 0
+		enable3 = 0
+	}
+}
 
 interrupt void Capture1(void)
 {
-	if (controller_uses_b)
+	if(!enable1)
 	{
-		time1a[0] = CCPR2L;
-		time1a[1] = CCPR2H;
-		enable1a = 1
-	}
-	else
-	{
-		time1b[0] = CCPR2L;
-		time1b[1] = CCPR2H;
-		enable1b = 1
+		if(!enable2 && !enable3)
+		{
+			!!!!begin timer4 #overflow après 580µs
+		}
+		time1[0] = CCPR2L;
+		time1[1] = CCPR2H;
+		enable1 = 1
 	}
 }
 
 interrupt void Capture2(void)
 {
-	if (controller_uses_b)
+	if(!enable2)
 	{
-		time2a[0] = CCPR3L;
-		time2a[1] = CCPR3H;
-		enable2a = 1
-	}
-	else
-	{
-		time2b[0] = CCPR3L;
-		time2b[1] = CCPR3H;
-		enable2b = 1
+		if(!enable1 && !enable3)
+		{
+			!!!!begin timer4 #overflow après 580µs
+		}
+		time2[0] = CCPR3L;
+		time2[1] = CCPR3H;
+		enable2 = 1
 	}
 }
 
 interrupt void Capture3(void)
 {
-	if (controller_uses_b)
+	if(!enable3)
 	{
-		time3a[0] = CCPR4L;
-		time3a[1] = CCPR4H;
-		enable3a = 1
-	}
-	else
-	{
-		time3b[0] = CCPR4L;
-		time3b[1] = CCPR4H;
-		enable3b = 1
+		if(!enable1 && !enable2)
+		{
+			!!!!begin timer4 #overflow après 580µs
+		}
+		time3[0] = CCPR4L;
+		time3[1] = CCPR4H;
+		enable3 = 1
 	}
 }
 
 void controller(void)
 {
-	for (;; controller_uses_b = !controller_uses_b)
+	for (;;)
 	{
-		if (!controller_uses_b)
+		if (enable1 && enable2 && enable3)
 		{
-			while(!(compute1a && compute2a && compute3a))
-			{
-				if(enable1a && enable2a)
-				{
-					delay12,1before2 = compute_delay(time1a,time2a)
-					compute1a
-					
-				}
-				
-				if(enable2a && enable3a)
-				{
-					delay23,2before3 = compute_delay(time2a,time3a)
-					compute2a
-				}
-				
-				if(enable3a && enable1a)
-				{
-					delay31,3before1 = compute_delay(time3a,time1a)
-					compute3a
-				}
-			}
+			delay12,1before2 = compute_delay(time1,time2)
+			delay23,2before3 = compute_delay(time2,time3)
+			delay31,3before1 = compute_delay(time3,time1)
 			!!! use delay to compute angle and distance
-			enable1a = 0
-			enable2a = 0
-			enable3a = 0
-		}
-		
-		
-		else
-		{
-			if(enable1b && enable2b)
-				delay12,1before2 = compute_delay(time1b,time2b)
-			
-			if(enable2b && enable3b)	
-				delay23,2before3 = compute_delay(time2b,time3b)
-			
-			if(enable3b && enable1b)
-				delay31,3before1 = compute_delay(time3b,time1b)
-			
-			!!! use delay to compute angle and distance
-			
 			enable1a = 0
 			enable2a = 0
 			enable3a = 0
@@ -129,99 +99,106 @@ void controller(void)
 delayxy,xbeforey compute_delay(timex,timey)
 {
 	#compute the delay
-	
 	if (timex[1] > timey[1])
-	{	
-		#if micy capture before micx
-		if (timex[1]-timey[1] < 589µs 0x024D=>0x03)
+	{
+		if (timex[1]-timey[1] > 589µs 0x0094=>0x01)
 		{
-			delayxy[1] = timex[1]-timey[1]
-			if (timex[0] < timey[0])
+			# an overflow occur => micx capture before micy
+			if (FF-timex[1] + 1 + timey[1] > 0x01)
 			{
-				delayxy[1] = delayxy[1]-1
-				delayxy[0] = FF-timey[0]
-				delayxy[0] = delayxy[0] + 1 + timex[0]
-				xbeforey = 0
+				#error
 			}
 			else
 			{
-				delayxy[0] = timex[0]-timey[0]
-				xbeforey = 0;
+				if(FF-timex[0]+1+timey[0] > 589µs 0x0094=>0x94)
+				{
+					#error
+				}
+				else
+				{
+					delayxy = FF-timex[0]+1+timey[0]
+					xbeforey = 1
+				}
 			}
 		}
-		# an overflow occur => micx capture before micy
 		else
 		{
-			delayxy[1] = FF-timex[1]
-			delayxy[1] = delayxy[1] + 1 + timey[1]
-			if (timey[0] < timex[0])
+			if(FF-timey[0]+1+timex[0] > 589µs 0x0094=>0x94)
 			{
-				delayxy[1] = delayxy[1]-1
-				delayxy[0] = FF-timex[0]
-				delayxy[0] = delayxy[0] + 1 + timey[0]
-				xbeforey = 1
+				#error
 			}
 			else
 			{
-				delayxy[0] = timey[0]-timex[0]
-				xbeforey = 1
+				delayxy = FF-timey[0]+1+timex[0]
+				xbeforey = 0
 			}
 		}
 	}
+	!!!!!!ICI!!!!!!
 	else
 	{	#if micx capture before micy
 		if (timex[1] < timey[1])
 		{
-!!!!!!!!ICI!!!!!!
-			if (timey[1]-timex[1] < 589µs)
+			if (timey[1]-timex[1] > 589µs 0x0094=>0x01)
 			{
-				delayxy[1] = timey[1]-timex[1]
-				if (timex[0] > timey[0])
+				# an overflow occur => micy capture before micx
+				if (FF-timey[1] + 1 + timex[1] > 0x01)
 				{
-					delayxy[1] = delayxy[1]-1
-					delayxy[0] = FF-timex[0]
-					delayxy[0] = delayxy[0] + 1 + timey[0]
-					xbeforey = 1
+					#error
 				}
 				else
 				{
-					delayxy[0] = timey[0]-timex[0]
-					xbeforey = 1
+					if(FF-timey[0]+1+timex[0] > 589µs 0x0094=>0x94)
+					{
+						#error
+					}
+					else
+					{
+						delayxy = FF-timey[0]+1+timex[0]
+						xbeforey = 0
+					}
 				}
 			}
-			# an overflow occur => micy capture before micx
 			else
 			{
-				delayxy[1] = FF-timey[1]
-				delayxy[1] = delayxy[1] + 1 + timex[1]
-				if (timey[0] > timex[0])
+				if(FF-timex[0]+1+timey[0] > 589µs 0x0094=>0x94)
 				{
-					delayxy[1] = delayxy[1]-1
-					delayxy[0] = FF-timey[0]
-					delayxy[0] = delayxy[0] + 1 + timex[0]
-					xbeforey = 0
+					#error
 				}
 				else
 				{
-					delayxy[0] = timex[0]-timey[0]
-					xbeforey = 0
+					delayxy = FF-timex[0]+1+timey[0]
+					xbeforey = 1
 				}
 			}
 		}
 		else
 		{   !!!!On ne doit pas vérifier l'overflow => <589µs
-			delayxy[1] = 0
-			# micx capture before micy
-			if (timey[0] >= timex[0])
+			if (timey[0] > timex[0])
 			{
-				delayxy[0] = timey[0]-timex[0]
-				xbeforey = 1
+				# micx capture before micy
+				if(timey[0]-timex[0] > 589µs 0x0094=>0x94)
+				{
+					#error
+				}
+				else 
+				{
+					delayxy[0] = timey[0]-timex[0]
+					xbeforey = 1
+				}
 			}
-			# micy capture before micx
 			else
 			{
-				delayxy[0] = timex[0]-timey[0]
-				xbeforey = 0
+				# micy capture before micx
+				if(timex[0]-timey[0] > 589µs 0x0094=>0x94)
+				{
+					#error
+				}
+				else 
+				{
+					delayxy[0] = timex[0]-timey[0]
+					xbeforey = 0
+				}
 			}
 		}
 	}
