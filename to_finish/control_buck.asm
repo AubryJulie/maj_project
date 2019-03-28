@@ -8,13 +8,11 @@
 	processor	18F25K80
 	#include	"config18.inc"
 
-;!!! les valeurs ne sont pas les bonnes -> on va utiliser des shifts!!!
-KPh EQU		0		; 0.04 -> 1/32 = 0.031
-KPl EQU		D'18'
-Kih EQU		0		;0.005 -> 1/128 = 0.0078
-Kil EQU 	D'80'
-REFH EQU	b'00000010' ;572 = 2.33 V
-REFL EQU	b'00111100'
+; -> on va utiliser des shifts!!!
+;KP	= 0.04 -> 1/32 = 0.031
+;Ki = 0.005 -> 1/128 = 0.0078
+REFH EQU	0x09 ;0x091B = 2.33 V
+REFL EQU	0x1B ;
 
 ; That is where the MCU will start executing the program (0x00)
 	org 	0x00
