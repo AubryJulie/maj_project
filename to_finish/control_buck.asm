@@ -40,13 +40,10 @@ initialisation:
 	adcl
 	errorh
 	errorl
-	totalh
-	totall
 	sumerrorh
 	sumerrorl
 	total2h
 	total2l
-	config_shift	; bit7: use in shift operation.
 	endc
 	
 	;set all the variables to 0
@@ -55,13 +52,10 @@ initialisation:
 	movwf	adcl
 	movwf	errorh
 	movwf	errorl
-	movwf	totalh
-	movwf	totall
 	movwf	sumerrorh
 	movwf	sumerrorl
 	movwf	total2h
 	movwf	total2l
-	movwf	config_shift
 	
 	; Configure Pin
 	
@@ -170,13 +164,13 @@ end_sumerror_ki:
 	MOVFF 	sumerrorh, total2h
 	; /2
 	bcf 	STATUS, C
-	btfsc   totalh, 7
+	btfsc   total2h, 7
 	bsf		STATUS, C
 	rrcf 	total2h
 	rrcf 	total2l
 	; /4
 	bcf 	STATUS, C
-	btfsc   totalh, 7
+	btfsc   total2h, 7
 	bsf		STATUS, C
 	rrcf 	total2h
 	rrcf 	total2l
