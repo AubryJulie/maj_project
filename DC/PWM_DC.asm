@@ -71,7 +71,7 @@ initialisation:
     ; Interrupt configuration
 	movlb	0x0F
 	bsf	PIE4,	TMR4IE	; enable timer 4 overflow interrupts  ,
-	;bsf    IPR4, TMR4IP    ; high priority !!! on sait pas à quoi ça sert
+	;bsf    IPR4, TMR4IP    ; high priority !!! on sait pas Ã  quoi Ã§a sert
 	;bsf    RCON,IPEN       ; enable priority
 	bsf	INTCON,	GIE	; enable global interrupts
 	bsf	INTCON,	6	; enable peripheral interrupts
