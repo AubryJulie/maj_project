@@ -1,0 +1,84 @@
+;**************************************;
+;                                      ;
+;              DELAY                   ;
+;   pseudo code to compute the delay   ;
+;        between 2 microphones         ;
+;**************************************;
+
+timer at 250khz(4µs) #en utilisant un pas de 4µ on a: 589~592 -> 148 valeurs possible d'angle 0x94
+static volatile int time1[2];
+static volatile int time2[2];
+
+static int 1before2 = 0;
+static int enable1 = 0;
+static int enable2 = 0;
+interrupt void overflow4(void)
+{
+	if(!(enable1 && enable2))
+	{
+		enable1 = 0
+		enable2 = 0
+	}
+}
+
+interrupt void Capture1(void)
+{
+	if(!enable1)
+	{
+		if(!enable2)
+		{
+			!!!!begin timer4 #overflow après 580µs
+		}
+		time1[0] = CCPR2L;
+		time1[1] = CCPR2H;
+		enable1 = 1
+	}
+}
+
+interrupt void Capture2(void)
+{
+	if(!enable2)
+	{
+		if(!enable1)
+		{
+			!!!!begin timer4 #overflow après 580µs
+		}
+		time2[0] = CCPR3L;
+		time2[1] = CCPR3H;
+		enable2 = 1
+	}
+}
+
+void controller(void)
+{
+	for (;;)
+	{
+		if (enable1 && enable2)
+		{
+			delay12,1before2 = compute_delay(time1,time2)
+			!!! use delay to compute angle and distance
+			enable1a = 0
+			enable2a = 0
+		}
+	}
+}
+
+delayxy,xbeforey compute_delay(timex,timey)
+{
+	#compute the delay
+	!!! p-e check if timex,7 est set ou timey,7 est set => éviter confusion entre positif et négatif!!!
+	!!! 11111111 = -1 
+	delay = timex-timey
+	if delay < 0
+	{
+		if delay < -148
+			!!!error
+		xbeforey = 0
+	}
+	else
+	{
+		if delay > 148
+			!!!error
+		xbeforey = 1
+	}
+}
