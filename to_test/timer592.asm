@@ -4,7 +4,7 @@
 ;                                                             ;
 ;                                                             ;
 ; *********************************************************** ;
-;utiliser b2: allumer/éteindre après un overflow
+;utiliser b2: allumer/éteindre après un overflow 
 	processor	18F25K80
 	#include	"config18.inc"
 
