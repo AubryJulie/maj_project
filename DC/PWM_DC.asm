@@ -25,6 +25,12 @@ initialisation:
 
 	; Configure Pin
 	
+	; Configure Port B
+	movlb   0x0F
+	clrf    TRISB               ; All pins of PORTB are output
+	movlb   0x0F
+	movlw   b'00000001'
+	movwf   LATB                ; RB0 = 1 while RB2..7 = 0 (pin 21)
 	; Configure Port C 
 	;configure CCP pin
 	;RC2/CCP2, RC6/CCP3 and RC7/CCP4 (pin 13, 17, 18)
@@ -49,8 +55,8 @@ initialisation:
 	; Configuration Timer4 for use with PWM
 	movlb 0x0F
 	movlw 41
-	movwf PR4		    ; PR4 = 41
-        movlw	b'00000000'
+	movwf PR4		    ; PR4 = 41 1001101
+	movlw	b'00000000'
 	movwf	T4CON
 	
 	; Setup PWM
@@ -58,7 +64,7 @@ initialisation:
 	movlw b'00011100'	; 000011xx (PWM mode, no prescale and no postscale)
 	movwf CCP5CON
 
-	movlw b'00101100'		; MSB of duty cycle 
+	movlw b'0010011'		; MSB of duty cycle 
 	movwf CCPR5L
 	bsf CCPTMRS,4  ; CCP5 en PWM
 
@@ -71,7 +77,7 @@ initialisation:
     ; Interrupt configuration
 	movlb	0x0F
 	bsf	PIE4,	TMR4IE	; enable timer 4 overflow interrupts  ,
-	;bsf    IPR4, TMR4IP    ; high priority !!! on sait pas Ã  quoi Ã§a sert
+	;bsf    IPR4, TMR4IP    ; high priority !!! on sait pas à quoi ça sert
 	;bsf    RCON,IPEN       ; enable priority
 	bsf	INTCON,	GIE	; enable global interrupts
 	bsf	INTCON,	6	; enable peripheral interrupts
