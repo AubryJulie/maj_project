@@ -31,8 +31,8 @@ F EQU 1
 TABLE:
 	ADDWF PCL
 	RETLW 0x01
-	RETLW 0x02
-	RETLW 0x04
+	RETLW 0x02	;if this value led b1 blink
+	RETLW 0x04	;if this value led b2 blink
 
 ;BEGINNING OF THE PROGRAM
 start:
