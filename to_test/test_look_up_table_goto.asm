@@ -32,7 +32,7 @@ TABLE:
 	ADDWF PCL
 	RETLW 0x01
 	RETLW 0x02
-	RETLW 0x03
+	RETLW 0x04
 
 ;BEGINNING OF THE PROGRAM
 start:
@@ -74,7 +74,7 @@ low_interrupt_routine:
 		
 ;MAIN LOOP
 main_loop:
-	movlw	0x02
+	movlw	0x04
 	movwf	_offset
 	MOVF	_offset, W
 	CALL	TABLE
