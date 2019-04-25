@@ -30,7 +30,7 @@ initialisation:
 	
 	; Configure Port B
 	movlb   0x0F
-	clrf    TRISB               ; All pins of PORTD are output
+	clrf    TRISB               ; All pins of PORTB are output
 	movlb   0x0F
 	movlw   b'00000001'
 	movwf   LATB                ; RB0 = 1 while RB2..7 = 0 (pin 21)
