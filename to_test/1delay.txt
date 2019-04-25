@@ -12,13 +12,14 @@ static volatile int time2[2];
 static int 1before2 = 0;
 static int enable1 = 0;
 static int enable2 = 0;
-interrupt void overflow4(void)
+interrupt void overflow3(void)
 {
-	if(!(enable1 && enable2))
+	if(enable1 != enable2)
 	{
 		enable1 = 0
 		enable2 = 0
 	}
+	!!!!stop timer3
 }
 
 interrupt void Capture1(void)
@@ -27,7 +28,7 @@ interrupt void Capture1(void)
 	{
 		if(!enable2)
 		{
-			!!!!begin timer4 #overflow après 580µs
+			!!!!begin timer3 #overflow après 580µs
 		}
 		time1[0] = CCPR2L;
 		time1[1] = CCPR2H;

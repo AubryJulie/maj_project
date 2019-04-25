@@ -6,10 +6,6 @@
 ;                                                             ;
 ; *********************************************************** ;
 ; b1 blink.
-;led N0 blinks if enter Table(RB0)
-;led N1 blinks if execute the first instruction after addwf PCL (RB1)
-;led N2 blinks if don't get the table number in w, don't work!(RB2)
-;led N3 blinks if all goes well, good job!(RB3)
 	processor	18F25K80
 	#include	"config18.inc"
 
@@ -30,44 +26,26 @@ F EQU 1
 	nop
 	goto    low_interrupt_routine   ; jump to the low interrupt routine
 
+; Look_up Table 	
+	org 	0200h
+TABLE:
+	ADDWF PCL
+	RETLW 0x01
+	RETLW 0x02	;if this value led b1 blink
+	RETLW 0x04	;if this value led b2 blink
+
 ;BEGINNING OF THE PROGRAM
 start:
 	call	initialisation      ; initialisation routine configuring the MCU
 	goto	main_loop           ; main loop
-	; Look_up Table 	
-	org 	0100h
-	
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-TABLE
-    
-	;TODEBUG
-	movlb	0x0F
-	movlw	0x01
-	xorwf	LATB, F	;Rb0 led blink ->N0
-	movlb	0x01
-	
-	movlb	0x0F
-	ADDWF	PCL,F		;!!!! cette instruction ne marche pas je ne sais pas pourquoi.
-    
-	;TODEBUG
-	movlb	0x0F
-	movlw	0x02
-	xorwf	LATB, F	;Rb1 led blink ->N1
-	movlb	0x01
-	RETLW	0x01  ;+2
-	RETLW	0x09  ;+4
-	RETLW	0x08  ;+6
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ;INITIALISATION
 initialisation:
 
    ; Declare usefull variables begining at the first GPR  adress of bank1 in ram
 	movlb	0x01
-	cblock	00h
 	_offset
 	result
-	_error
 	endc
 	
 	;set all the variables to 0
@@ -93,24 +71,34 @@ initialisation:
 low_interrupt_routine:
 
 	retfie
-	
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!		
 
+;look_up_routine:
+		
 ;MAIN LOOP
 main_loop:
-	movlw	0x00
-	CALL	TABLE
-	movlb	0x01
-	movwf	_error
-	btfss	_error, 1	;skip if set (skip if don't get the table number in w) 
-	goto	ledb2
-	bsf 	LATB, 2 	;Rb2 led blink ->N2
-	goto	main_loop
-ledb2:
-	bsf 	LATB, 3 	;Rb3 led blink ->N3
+
+	movlw 0x00
+	movwf TBLPTRU
+	movlw 0x10
+	movwf TBLPTRH
+	movlw 0x02
+	movwf TBLPTRL
+
+	TBLRD*+
+	MOVF TABLAT, W
+	MOVWF WORD_EVEN
+	TBLRD*+
+	MOVF TABLAT, W
+	MOVF WORD_ODD
+
+	xorwf	LATB, F 	; b1 = !b1
 	
-    goto    main_loop
+    ; goto    main_loop
+    
     END 
 
+org 0x1000
+    
+    da 0x02, 0x04, 0x08
 
-	
+END
