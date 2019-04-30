@@ -11,10 +11,6 @@ processor	18F25K80
 ; -> on va utiliser des shifts!!!
 ;KP	= 0.04 -> 1/32 = 0.031
 ;Ki = 0.005 -> 1/128 = 0.0078
-DUTYMAXH EQU 0x01
-DUTYMAXL EQU 0x08
-DUTYREFH EQU 0x00
-DUTYREFL EQU 0x4D
 REFH EQU	0x0D ;0x0DA7 = 3.5 V
 REFL EQU	0xA7 ;
 DUTYFLAGMIN EQU 0
@@ -196,18 +192,6 @@ pi:
 	MOVF	adch, W
 	SUBWFB	errorh, F
 	
-;	btfss	errorh,7
-;	goto	ledBlink
-;	movlb	0x0F
-;	bcf LATB, 2
-;	goto endLedBlink
-;ledBlink:
-;	movlb	0x0F
-;	bsf LATB, 2
-;	
-;endLedBlink:
-;   movlb 0x01
-	
 	; Anti windup
 	BTFSC   errorh, 7 ;skip if clear
 	GOTO    antiwindupneg
@@ -267,20 +251,6 @@ end_sumerror_ki:
 	rrcf 	total3
 	rrcf 	total2
 	rrcf 	total1
-;	; \16
-;	bcf 	STATUS, C
-;	btfsc   total4, 7
-;	bsf	STATUS, C
-;	rrcf 	total4
-;	rrcf 	total3
-;	rrcf 	total2
-;	rrcf 	total1
-	
-;	movlw	0
-;	movwf	total1
-;	movwf	total2
-;	movwf total3
-;	movwf total4
 	
 	; error + sumerror/4
 	MOVF 	errorl, W
@@ -343,33 +313,7 @@ end_sumerror_ki:
 	rrcf 	total3
 	rrcf 	total2
 	rrcf 	total1
-;	; /128
-;	bcf 	STATUS, C
-;	btfsc   total4, 7
-;	bsf	STATUS, C
-;	rrcf 	total4
-;	rrcf 	total3
-;	rrcf 	total2
-;	rrcf 	total1
-;	;/256
-;	bcf 	STATUS, C
-;	btfsc   total4, 7
-;	bsf	STATUS, C
-;	rrcf 	total4
-;	rrcf 	total3
-;	rrcf 	total2
-;	rrcf 	total1
 	
-;	;/512
-;	bcf 	STATUS, C
-;	btfsc   total4, 7
-;	bsf	STATUS, C
-;	rrcf 	total4
-;	rrcf 	total3
-;	rrcf 	total2
-;	rrcf 	total1
-	
-
 	movf	total1, W
 	movwf	tmp1
 	movf	total2, W
@@ -378,12 +322,6 @@ end_sumerror_ki:
 	movwf	tmp3
 	movf	total4, W
 	movwf	tmp4
-	
-	; duty_ref + duty_correction
-;	movlw	DUTYREFL
-;	addwf	tmp0, F
-;	movlw	DUTYREFH
-;	addwfc	tmp1, F
 	
 	; The final duty cycle is in tmp
 	

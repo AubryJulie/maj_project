@@ -13,7 +13,7 @@
 ;led N4 : bit4 of delay(RB4)
 ;led N5 : bit5 of delay(RC4)
 ;led N6 : bit6 of delay(RA6)
-;led N7 : bit7 of delay(RA3) ok !!!!!!! bruitée
+;led N7 : bit7 of delay(RA3) !!!!!!! bruitée
 ; trick: devide the delay by 2 to have a step of 8Âµs instead of 4Âµs
 	processor	18F25K80
 	#include	"config18.inc"
@@ -41,8 +41,8 @@ ELAPSEH EQU 0x00
 	nop
 	goto    start		    ; jump to the beginning of the code
 	
-; That is where the MCU will start executing the low interrupt (0x08)
-	org 	0x08
+; That is where the MCU will start executing the low interrupt (0x18)
+	org 	0x18
 	nop
 	goto    low_interrupt_routine   ; jump to the low interrupt routine
 
@@ -100,13 +100,12 @@ initialisation:
 	; Configure Pin
 	
 	; Configure Port C 
-	;configure CCP pin
+	;configure CCP pin as input
 	;RC2/CCP2, RC6/CCP3 and RC7/CCP4 (pin 13, 17, 18)
-	;!!!TRISC initiate to 11111111 at the start
 	movlb	0x0F
 	movlw	b'11000100' 
 	movwf	TRISC		    ; All pins of PORTC are outputs except RC2,RC6,RC7
-	clrf   LATC                ;while RB0..7 = 0
+	clrf 	LATC                ;while RB0..7 = 0
 	
 	; Configure Port B
 	movlb   0x0F
@@ -414,11 +413,11 @@ end_led0:
 	
 	;TODEBUG
 	btfsc	delay12H, 1 ;skip if clear
-	goto	led_set0
+	goto	led_set1
 	
 	movlb	0x0F
 	bcf 	LATB, 1 ;Rb1 led blink ->N1
-	goto	end_led0
+	goto	end_led1
 	
 led_set1:
 	movlb	0x0F
@@ -428,11 +427,11 @@ end_led1:
 	
 	;TODEBUG
 	btfsc	delay12H, 2 ;skip if clear
-	goto	led_set0
+	goto	led_set2
 	
 	movlb	0x0F
 	bcf 	LATB, 2 ;Rb2 led blink ->N2
-	goto	end_led0
+	goto	end_led2
 	
 led_set2:
 	movlb	0x0F
@@ -442,11 +441,11 @@ end_led2:
 	
 	;TODEBUG
 	btfsc	delay12H, 3 ;skip if clear
-	goto	led_set0
+	goto	led_set3
 	
 	movlb	0x0F
 	bcf 	LATB, 3 ;Rb3 led blink ->N3
-	goto	end_led0
+	goto	end_led3
 	
 led_set3:
 	movlb	0x0F
@@ -456,11 +455,11 @@ end_led3:
 	
 	;TODEBUG
 	btfsc	delay12H, 4 ;skip if clear
-	goto	led_set0
+	goto	led_set4
 	
 	movlb	0x0F
 	bcf 	LATB, 4 ;Rb4 led blink ->N4
-	goto	end_led0
+	goto	end_led4
 	
 led_set4:
 	movlb	0x0F
@@ -470,11 +469,11 @@ end_led4:
 	
 	;TODEBUG
 	btfsc	delay12H, 5 ;skip if clear
-	goto	led_set0
+	goto	led_set5
 	
 	movlb	0x0F
 	bcf 	LATC, 4 ;Rc4 led blink ->N5
-	goto	end_led0
+	goto	end_led5
 	
 led_set5:
 	movlb	0x0F
@@ -484,11 +483,11 @@ end_led5:
 		
 	;TODEBUG
 	btfsc	delay12H, 6 ;skip if clear
-	goto	led_set0
+	goto	led_set6
 	
 	movlb	0x0F
 	bcf 	LATA, 6 ;Ra6 led blink ->N6
-	goto	end_led0
+	goto	end_led6
 	
 led_set6:
 	movlb	0x0F
@@ -498,11 +497,11 @@ end_led6:
 		
 	;TODEBUG
 	btfsc	delay12H, 7 ;skip if clear
-	goto	led_set0
+	goto	led_set7
 	
 	movlb	0x0F
 	bcf 	LATA, 3 ;Ra3 led blink ->N7
-	goto	end_led0
+	goto	end_led7
 	
 led_set7:
 	movlb	0x0F

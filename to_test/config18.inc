@@ -7,7 +7,7 @@
 ; CONFIG1L
   CONFIG  RETEN = OFF           ; VREG Sleep Enable bit (Ultra low-power regulator is Disabled (Controlled by REGSLP bit))
   CONFIG  INTOSCSEL = HIGH      ; LF-INTOSC Low-power Enable bit (LF-INTOSC in High-power mode during Sleep)
-  CONFIG  SOSCSEL = HIGH        ; SOSC Power Selection and mode Configuration bits (High Power SOSC circuit selected)
+  CONFIG  SOSCSEL = DIG        ; SOSC Power Selection and mode Configuration bits (High Power SOSC circuit selected)
   CONFIG  XINST = ON            ; Extended Instruction Set (Enabled)
 
 ; CONFIG1H
